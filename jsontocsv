@@ -3,37 +3,53 @@
 
 import json
 import csv
+import os
 
-def json_to_csv():
+def json_to_csv(inpath,outpath,filename):
+    #创建输出文件夹
+    Makedir(outpath)
     # 读取json文件
-    json_file = open('./data/stores/BJN205/directManhour/directManhour_2019-11-11.json', 'r')
-
+    json_file = open(inpath+filename+'.json', 'r')
     # 创建csv文件
-    csv_file = open('./data/stores/BJN205/directManhour/directManhour_2019-11-11.csv', 'w', newline="")
-
+    csv_file = open(outpath+filename+'.csv', 'w', newline="")
     # 创建读写器
     csv_writer = csv.writer(csv_file)
-
     # 提取表头和正文内容
     data = json.load(json_file)
-
-    # 表头
-    sheet_title = data[0].keys()
-
-    # 正文内容
-    content_list = [dict.values() for dict in data]
-
-    # 通过读写器写入csv文件
-    csv_writer.writerow(sheet_title)
-    csv_writer.writerows(content_list)
-
-
+    #为非空json文件时
+    if(len(data) > 2):
+        # 表头
+        sheet_title = data[0].keys()
+        # 正文内容
+        content_list = [dict.values() for dict in data]
+        # 通过读写器写入csv文件
+        csv_writer.writerow(sheet_title)
+        csv_writer.writerows(content_list)
     # 关闭文件
     json_file.close()
     csv_file.close()
 
+ # 如果文件夹不存在创建文件夹
+def Makedir(path):
+    folder = os.path.exists(path)
+    if (not folder):
+        os.makedirs(path)
+
+# 利用os.listdir()、os.walk()获取文件夹和文件名
+def GetFileName(fileDir, outDir):
+    Makedir(outDir)
+    # 获取当前目录下的所有文件夹和文件(不带后缀)的名称
+    for dir in os.listdir(fileDir):
+        inpath = os.path.join(fileDir, dir) + '/'
+        outpath = os.path.join(outDir, dir) + '/'
+        if os.path.isdir(inpath) and not (inpath == outDir):
+            # 获取根目录路径、子目录路径，根目录和子目录下所有文件名
+            for root, subDir, files in os.walk(inpath):
+                for fileName in files:
+                    fileName = os.path.splitext(fileName)[0]  # 分割，不带后缀名
+                    json_to_csv(inpath, outpath, fileName)
 
 if __name__ == '__main__':
-    file_name = "directManhour_"
-    time = "2019-"
-    json_to_csv()
+    fileDir = './data/stores/BJN205/'
+    outDir = './data/csv/'
+    GetFileName(fileDir, outDir)
