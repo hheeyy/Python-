@@ -1,0 +1,25 @@
+# -- coding: utf-8 --
+import pandas as pd
+import datetime
+
+df1 = pd.read_excel("./input_data/industrydata-1110.xlsx")
+
+df1['time'] = pd.to_datetime(df1['日期'], format='%Y-%m-%d')
+df1['周'] = df1['time'].apply(lambda x: x.isocalendar()[1])
+df1['年'] = df1['time'].apply(lambda x: x.year)
+df1 = df1[df1['年'] == 2019]
+del df1['年']
+del df1['time']
+
+comp = df1.groupby('周').mean()
+df2 = pd.DataFrame(comp)
+df2['周'] = list(df2.index)
+df2 = df2.reset_index(drop = True)
+
+colum = []
+for i in df2.columns[:-1]:
+    colum.append(str(i) + "_均值")
+df2.columns = colum + [df2.columns[-1]]
+
+df3 = df1.merge(df2, "left", ['周'])
+df3.to_excel("./input_data/result2.xlsx", index = False)
